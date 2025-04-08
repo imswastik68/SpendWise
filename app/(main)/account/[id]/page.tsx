@@ -5,11 +5,7 @@ import { notFound } from "next/navigation";
 import { AccountChart } from "../_components/account-chart";
 import { Suspense } from "react";
 
-export default async function AccountPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function AccountPage({ params }) {
   const accountData = await getAccountWithTransactions(params.id);
 
   if (!accountData) {
@@ -26,8 +22,7 @@ export default async function AccountPage({
             {account.name}
           </h1>
           <p className="text-muted-foreground">
-            {account.type.charAt(0) + account.type.slice(1).toLowerCase()}{" "}
-            Account
+            {account.type.charAt(0) + account.type.slice(1).toLowerCase()} Account
           </p>
         </div>
 
