@@ -5,7 +5,13 @@ import { notFound } from "next/navigation";
 import { AccountChart } from "../_components/account-chart";
 import { Suspense } from "react";
 
-export default async function AccountPage({ params }) {
+interface AccountPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default async function AccountPage({ params }: AccountPageProps) {
   const accountData = await getAccountWithTransactions(params.id);
 
   if (!accountData) {
