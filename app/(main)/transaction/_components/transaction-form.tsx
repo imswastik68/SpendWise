@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon, Loader2 } from "lucide-react";
-import { format } from "date-fns";
 import { useRouter, useSearchParams } from "next/navigation";
 import useFetch from "@/hooks/use-fetch";
 import { toast } from "sonner";
-
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -20,16 +20,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { CreateAccountDrawer } from "@/components/create-account-drawer";
-import { cn } from "@/lib/utils";
 import { createTransaction, updateTransaction } from "@/actions/transaction";
 import { transactionSchema } from "@/app/lib/schema";
 import { ReceiptScanner } from "./recipt-scanner";
+import { cn } from "@/lib/utils";
+import { Loader2, Wallet, Laptop, TrendingUp, Building, Home, Plus, Car, ShoppingBag, Zap, Film, UtensilsCrossed, HeartPulse, GraduationCap, Smile, Plane, Shield, Gift, Receipt, MoreHorizontal, ChevronDown } from "lucide-react";
 
 interface Account {
   id: string;
@@ -42,6 +43,28 @@ interface Category {
   id: string;
   name: string;
   type: string;
+  icon: string;
+  color: string;
+}
+
+interface TransactionResult {
+  success: boolean;
+  data: {
+    id: string;
+    accountId: string;
+    amount: number;
+  };
+}
+
+interface TransactionFormData {
+  type: "EXPENSE" | "INCOME";
+  amount: string;
+  description?: string;
+  accountId: string;
+  category: string;
+  date: Date;
+  isRecurring: boolean;
+  recurringInterval?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
 }
 
 interface TransactionFormProps {
@@ -60,12 +83,36 @@ interface TransactionFormProps {
   };
 }
 
+// Icon mapping
+const iconMap = {
+  Wallet,
+  Laptop,
+  TrendingUp,
+  Building,
+  Home,
+  Plus,
+  Car,
+  ShoppingBag,
+  Zap,
+  Film,
+  UtensilsCrossed,
+  HeartPulse,
+  GraduationCap,
+  Smile,
+  Plane,
+  Shield,
+  Gift,
+  Receipt,
+  MoreHorizontal,
+};
+
 export function AddTransactionForm({
   accounts,
   categories,
   editMode = false,
   initialData = null,
 }: TransactionFormProps) {
+  
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
@@ -78,7 +125,7 @@ export function AddTransactionForm({
     setValue,
     getValues,
     reset,
-  } = useForm({
+  } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
     defaultValues:
       editMode && initialData
@@ -110,20 +157,16 @@ export function AddTransactionForm({
     data: transactionResult,
   } = useFetch(editMode ? updateTransaction : createTransaction);
 
-  const onSubmit = (data: {
-    type: "EXPENSE" | "INCOME";
-    amount: string;
-    description: string;
-    accountId: string;
-    category: string;
-    date: Date;
-    isRecurring: boolean;
-    recurringInterval?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
-  }) => {
+  const onSubmit = (data: TransactionFormData) => {
     const formData = {
-      ...data,
+      type: data.type,
       amount: parseFloat(data.amount),
-      description: data.description || "",
+      description: data.description ?? "",
+      accountId: data.accountId,
+      category: data.category,
+      date: data.date.toISOString(),
+      isRecurring: data.isRecurring,
+      ...(data.recurringInterval && { recurringInterval: data.recurringInterval }),
     };
 
     if (editMode) {
@@ -166,6 +209,9 @@ export function AddTransactionForm({
   const filteredCategories = categories.filter(
     (category) => category.type === type
   );
+
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const selectedCategory = categories.find(cat => cat.id === getValues("category"));
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -242,54 +288,95 @@ export function AddTransactionForm({
       {/* Category */}
       <div className="space-y-2">
         <label className="text-sm font-medium">Category</label>
-        <Select
-          onValueChange={(value) => setValue("category", value)}
-          defaultValue={getValues("category")}
+        <button
+          type="button"
+          onClick={() => setIsCategoryModalOpen(true)}
+          className="w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <SelectTrigger>
-            <SelectValue placeholder="Select category" />
-          </SelectTrigger>
-          <SelectContent>
-            {filteredCategories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <div className="flex items-center gap-2">
+            {selectedCategory ? (
+              <>
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: selectedCategory.color }}
+                >
+                  {iconMap[selectedCategory.icon as keyof typeof iconMap] && 
+                    React.createElement(iconMap[selectedCategory.icon as keyof typeof iconMap], {
+                      className: "w-3 h-3 text-white"
+                    })
+                  }
+                </div>
+                <span>{selectedCategory.name}</span>
+              </>
+            ) : (
+              <span className="text-muted-foreground">Select category</span>
+            )}
+          </div>
+          <ChevronDown className="h-4 w-4 opacity-50" />
+        </button>
         {errors.category && (
           <p className="text-sm text-red-500">{errors.category.message}</p>
         )}
       </div>
 
+      <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Select Category</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 py-4">
+            {filteredCategories.map((category) => {
+              const IconComponent = iconMap[category.icon as keyof typeof iconMap];
+              return (
+                <button
+                  key={category.id}
+                  type="button"
+                  onClick={() => {
+                    setValue("category", category.id);
+                    setIsCategoryModalOpen(false);
+                  }}
+                  className={cn(
+                    "flex flex-col items-center justify-center p-3 rounded-lg border transition-all",
+                    "hover:border-primary hover:bg-primary/5",
+                    getValues("category") === category.id
+                      ? "border-primary bg-primary/5"
+                      : "border-border"
+                  )}
+                >
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center mb-1"
+                    style={{ backgroundColor: category.color }}
+                  >
+                    {IconComponent && <IconComponent className="w-4 h-4 text-white" />}
+                  </div>
+                  <span className="text-xs text-center">{category.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Date */}
       <div className="space-y-2">
         <label className="text-sm font-medium">Date</label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full pl-3 text-left font-normal",
-                !date && "text-muted-foreground"
-              )}
-            >
-              {date ? format(date, "PPP") : <span>Pick a date</span>}
-              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={(date) => date && setValue("date", date)}
-              disabled={(date) =>
-                date > new Date() || date < new Date("1900-01-01")
-              }
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
+        <div className="flex flex-col gap-1">
+          <DatePicker
+            selected={date}
+            onChange={(newDate) => newDate && setValue("date", newDate)}
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent 
+            file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring 
+            focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            dateFormat="MMMM d, yyyy"
+            maxDate={new Date()}
+            minDate={new Date("1900-01-01")}
+            showMonthDropdown
+            showYearDropdown
+            dropdownMode="select"
+            popperPlacement="bottom-start"
+            placeholderText=""
+          />
+        </div>
         {errors.date && (
           <p className="text-sm text-red-500">{errors.date.message}</p>
         )}
