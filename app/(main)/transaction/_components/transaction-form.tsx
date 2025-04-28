@@ -225,7 +225,7 @@ export function AddTransactionForm({
           onValueChange={(value) => setValue("type", value as "EXPENSE" | "INCOME")}
           defaultValue={type}
         >
-          <SelectTrigger>
+          <SelectTrigger className="cursor-pointer">
             <SelectValue placeholder="Select type" />
           </SelectTrigger>
           <SelectContent>
@@ -259,7 +259,7 @@ export function AddTransactionForm({
             onValueChange={(value) => setValue("accountId", value)}
             defaultValue={getValues("accountId")}
           >
-            <SelectTrigger>
+            <SelectTrigger className="cursor-pointer">
               <SelectValue placeholder="Select account" />
             </SelectTrigger>
             <SelectContent>
@@ -291,7 +291,7 @@ export function AddTransactionForm({
         <button
           type="button"
           onClick={() => setIsCategoryModalOpen(true)}
-          className="w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="cursor-pointer w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <div className="flex items-center gap-2">
             {selectedCategory ? (
@@ -402,6 +402,7 @@ export function AddTransactionForm({
         <Switch
           checked={isRecurring}
           onCheckedChange={(checked) => setValue("isRecurring", checked)}
+          className="cursor-pointer"
         />
       </div>
 
@@ -413,7 +414,7 @@ export function AddTransactionForm({
             onValueChange={(value) => setValue("recurringInterval", value as "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | undefined)}
             defaultValue={getValues("recurringInterval")}
           >
-            <SelectTrigger>
+            <SelectTrigger className="cursor-pointer">
               <SelectValue placeholder="Select interval" />
             </SelectTrigger>
             <SelectContent>
@@ -436,12 +437,12 @@ export function AddTransactionForm({
         <Button
           type="button"
           variant="outline"
-          className="w-1/2"
+          className="w-1/2 cursor-pointer"
           onClick={() => router.back()}
         >
           Cancel
         </Button>
-        <Button type="submit" className="w-1/2" disabled={!!transactionLoading}>
+        <Button type="submit" className="w-1/2 cursor-pointer" disabled={!!transactionLoading}>
           {transactionLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

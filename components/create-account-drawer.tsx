@@ -117,7 +117,7 @@ export function CreateAccountDrawer({ children }: { children: ReactNode }) {
                 onValueChange={(value) => setValue("type", value as "CURRENT" | "SAVINGS")}
                 defaultValue={watch("type")}
               >
-                <SelectTrigger id="type">
+                <SelectTrigger id="type" className="cursor-pointer">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -170,13 +170,13 @@ export function CreateAccountDrawer({ children }: { children: ReactNode }) {
 
             <div className="flex gap-4 pt-4">
               <DrawerClose asChild>
-                <Button type="button" variant="outline" className="flex-1">
+                <Button type="button" variant="outline" className="flex-1 cursor-pointer">
                   Cancel
                 </Button>
               </DrawerClose>
               <Button
                 type="submit"
-                className="flex-1"
+                className="flex-1 cursor-pointer"
                 disabled={!!createAccountLoading}
               >
                 {createAccountLoading ? (

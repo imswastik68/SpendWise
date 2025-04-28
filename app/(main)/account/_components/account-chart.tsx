@@ -39,6 +39,25 @@ interface AccountChartProps {
   transactions: Transaction[];
 }
 
+// Custom bar component to handle centering
+const CenteredBar = (props: any) => {
+  const { x, y, width, height, fill, payload } = props;
+  const isSingleBar = !(payload.income > 0 && payload.expense > 0);
+  const offset = isSingleBar ? width / 2 : 0;
+  
+  return (
+    <rect
+      x={x - offset}
+      y={y}
+      width={width}
+      height={height}
+      fill={fill}
+      rx={4}
+      ry={4}
+    />
+  );
+};
+
 export function AccountChart({ transactions }: AccountChartProps) {
   const [dateRange, setDateRange] = useState<keyof typeof DATE_RANGES>("1M");
 
@@ -55,15 +74,17 @@ export function AccountChart({ transactions }: AccountChartProps) {
     );
 
     // Group transactions by date
-    const grouped = filtered.reduce((acc: { [key: string]: { date: string; income: number; expense: number } }, transaction) => {
+    const grouped = filtered.reduce((acc: { [key: string]: { date: string; income: number; expense: number; hasBoth: boolean } }, transaction) => {
       const date = format(new Date(transaction.date), "MMM dd");
       if (!acc[date]) {
-        acc[date] = { date, income: 0, expense: 0 };
+        acc[date] = { date, income: 0, expense: 0, hasBoth: false };
       }
       if (transaction.type === "INCOME") {
         acc[date].income += transaction.amount;
+        acc[date].hasBoth = acc[date].expense > 0;
       } else {
         acc[date].expense += transaction.amount;
+        acc[date].hasBoth = acc[date].income > 0;
       }
       return acc;
     }, {});
@@ -92,7 +113,7 @@ export function AccountChart({ transactions }: AccountChartProps) {
           Transaction Overview
         </CardTitle>
         <Select defaultValue={dateRange} onValueChange={(value) => setDateRange(value as keyof typeof DATE_RANGES)}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-[140px] cursor-pointer">
             <SelectValue placeholder="Select range" />
           </SelectTrigger>
           <SelectContent>
@@ -151,11 +172,21 @@ export function AccountChart({ transactions }: AccountChartProps) {
                 tickFormatter={(value) => `$${value}`}
               />
               <Tooltip
-                formatter={(value) => [`$${value}`, undefined]}
+                formatter={(value, name) => {
+                  const prefix = name === "Income" ? "I: " : "E: ";
+                  return [`${prefix}$${value}`, undefined];
+                }}
                 contentStyle={{
                   backgroundColor: "hsl(var(--popover))",
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "var(--radius)",
+                  color: "black",
+                }}
+                itemStyle={{
+                  color: "black",
+                }}
+                labelStyle={{
+                  color: "black",
                 }}
               />
               <Legend />
@@ -163,13 +194,13 @@ export function AccountChart({ transactions }: AccountChartProps) {
                 dataKey="income"
                 name="Income"
                 fill="#22c55e"
-                radius={[4, 4, 0, 0]}
+                shape={<CenteredBar />}
               />
               <Bar
                 dataKey="expense"
                 name="Expense"
                 fill="#ef4444"
-                radius={[4, 4, 0, 0]}
+                shape={<CenteredBar />}
               />
             </BarChart>
           </ResponsiveContainer>

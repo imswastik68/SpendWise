@@ -16,6 +16,12 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { updateBudget } from "@/actions/budget";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface BudgetProgressProps {
   initialBudget: {
@@ -131,16 +137,32 @@ export function BudgetProgress({ initialBudget, currentExpenses }: BudgetProgres
       <CardContent>
         {initialBudget && (
           <div className="space-y-2">
-            <Progress
-              value={percentUsed}
-              className={`${
-                percentUsed >= 90
-                  ? "bg-red-500"
-                  : percentUsed >= 75
-                    ? "bg-yellow-500"
-                    : "bg-green-500"
-              }`}
-            />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="w-full">
+                    <Progress
+                      value={percentUsed}
+                      className={`${
+                        percentUsed < 25
+                          ? "bg-green-800 [&>div]:bg-red-500"
+                          : percentUsed < 50
+                          ? "bg-green-700 [&>div]:bg-red-600"
+                          : percentUsed < 75
+                          ? "bg-green-600 [&>div]:bg-red-600"
+                          : percentUsed < 90
+                          ? "bg-green-500 [&>div]:bg-red-700"
+                          : "bg-green-400 [&>div]:bg-red-800"
+                      }`}
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="bg-zinc-800">
+                  <p className="text-red-500">Used: {percentUsed.toFixed(1)}%</p>
+                  <p className="text-green-500">Remaining: {(100 - percentUsed).toFixed(1)}%</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <p className="text-xs text-muted-foreground text-right">
               {percentUsed.toFixed(1)}% used
             </p>
