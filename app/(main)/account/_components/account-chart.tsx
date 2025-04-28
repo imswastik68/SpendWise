@@ -27,7 +27,9 @@ const DATE_RANGES = {
   "3M": { label: "Last 3 Months", days: 90 },
   "6M": { label: "Last 6 Months", days: 180 },
   ALL: { label: "All Time", days: null },
-};
+} as const;
+
+type DateRangeKey = keyof typeof DATE_RANGES;
 
 interface Transaction {
   date: string;
@@ -39,10 +41,41 @@ interface AccountChartProps {
   transactions: Transaction[];
 }
 
+interface DayData {
+  date: string;
+  income: number;
+  expense: number;
+  hasBoth: boolean;
+}
+
+// Define a more specific interface for the props
+interface CenteredBarProps {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  fill?: string;
+  payload?: {
+    income?: number;
+    expense?: number;
+  };
+}
+
 // Custom bar component to handle centering
-const CenteredBar = (props: any) => {
+// Using a more generic type that works with what Recharts provides
+const CenteredBar = (props: CenteredBarProps) => {
   const { x, y, width, height, fill, payload } = props;
-  const isSingleBar = !(payload.income > 0 && payload.expense > 0);
+  // Ensure we have all required properties and handle potential undefined values
+  if (x === undefined || y === undefined || width === undefined || height === undefined || !payload) {
+    return null;
+  }
+  
+  const isSingleBar = !(
+    payload.income !== undefined && 
+    payload.expense !== undefined && 
+    payload.income > 0 && 
+    payload.expense > 0
+  );
   const offset = isSingleBar ? width / 2 : 0;
   
   return (
@@ -59,7 +92,7 @@ const CenteredBar = (props: any) => {
 };
 
 export function AccountChart({ transactions }: AccountChartProps) {
-  const [dateRange, setDateRange] = useState<keyof typeof DATE_RANGES>("1M");
+  const [dateRange, setDateRange] = useState<DateRangeKey>("1M");
 
   const filteredData = useMemo(() => {
     const range = DATE_RANGES[dateRange];
@@ -74,7 +107,7 @@ export function AccountChart({ transactions }: AccountChartProps) {
     );
 
     // Group transactions by date
-    const grouped = filtered.reduce((acc: { [key: string]: { date: string; income: number; expense: number; hasBoth: boolean } }, transaction) => {
+    const grouped = filtered.reduce((acc: Record<string, DayData>, transaction) => {
       const date = format(new Date(transaction.date), "MMM dd");
       if (!acc[date]) {
         acc[date] = { date, income: 0, expense: 0, hasBoth: false };
@@ -112,7 +145,10 @@ export function AccountChart({ transactions }: AccountChartProps) {
         <CardTitle className="text-base font-normal">
           Transaction Overview
         </CardTitle>
-        <Select defaultValue={dateRange} onValueChange={(value) => setDateRange(value as keyof typeof DATE_RANGES)}>
+        <Select 
+          defaultValue={dateRange} 
+          onValueChange={(value) => setDateRange(value as DateRangeKey)}
+        >
           <SelectTrigger className="w-[140px] cursor-pointer">
             <SelectValue placeholder="Select range" />
           </SelectTrigger>
@@ -169,10 +205,10 @@ export function AccountChart({ transactions }: AccountChartProps) {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `$${value}`}
+                tickFormatter={(value: number) => `$${value}`}
               />
               <Tooltip
-                formatter={(value, name) => {
+                formatter={(value: number, name: string) => {
                   const prefix = name === "Income" ? "I: " : "E: ";
                   return [`${prefix}$${value}`, undefined];
                 }}

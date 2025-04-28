@@ -192,7 +192,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "D:\\VSCode\\SpendWise\\fin-app\\prisma\\generated\\client",
+      "value": "D:\\VSCode\\SpendWise\\prisma\\generated\\client",
       "fromEnvVar": null
     },
     "config": {
@@ -206,11 +206,11 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "D:\\VSCode\\SpendWise\\fin-app\\prisma\\schema.prisma",
+    "sourceFilePath": "D:\\VSCode\\SpendWise\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": "../../../.env",
+    "rootEnvPath": null,
     "schemaEnvPath": "../../../.env"
   },
   "relativePath": "../..",

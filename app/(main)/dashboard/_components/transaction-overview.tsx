@@ -214,7 +214,7 @@ export function DashboardOverview({
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value, name, props) => {
+                    formatter={(value, name) => {
                       const total = pieChartData.reduce((sum, item) => sum + item.value, 0);
                       const percentage = ((value as number) / total * 100).toFixed(0);
                       return [`$${Number(value).toFixed(2)}`, `${name} (${percentage}%)`];

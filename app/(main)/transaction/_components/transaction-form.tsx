@@ -47,15 +47,6 @@ interface Category {
   color: string;
 }
 
-interface TransactionResult {
-  success: boolean;
-  data: {
-    id: string;
-    accountId: string;
-    amount: number;
-  };
-}
-
 interface TransactionFormData {
   type: "EXPENSE" | "INCOME";
   amount: string;
@@ -76,6 +67,22 @@ interface TransactionFormProps {
     amount: number;
     description: string;
     accountId: string;
+    category: string;
+    date: string;
+    isRecurring: boolean;
+    recurringInterval?: string;
+  };
+}
+
+// Add this interface to properly type the transaction result
+interface TransactionResult {
+  success: boolean;
+  data: {
+    id: string;
+    accountId: string;
+    amount: number;
+    type: string;
+    description: string;
     category: string;
     date: string;
     isRecurring: boolean;
@@ -112,7 +119,7 @@ export function AddTransactionForm({
   editMode = false,
   initialData = null,
 }: TransactionFormProps) {
-  
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
@@ -130,32 +137,34 @@ export function AddTransactionForm({
     defaultValues:
       editMode && initialData
         ? {
-            type: initialData.type as "EXPENSE" | "INCOME",
-            amount: initialData.amount.toString(),
-            description: initialData.description || "",
-            accountId: initialData.accountId,
-            category: initialData.category,
-            date: new Date(initialData.date),
-            isRecurring: initialData.isRecurring,
-            ...(initialData.recurringInterval && {
-              recurringInterval: initialData.recurringInterval as "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | undefined,
-            }),
-          }
+          type: initialData.type as "EXPENSE" | "INCOME",
+          amount: initialData.amount.toString(),
+          description: initialData.description || "",
+          accountId: initialData.accountId,
+          category: initialData.category,
+          date: new Date(initialData.date),
+          isRecurring: initialData.isRecurring,
+          ...(initialData.recurringInterval && {
+            recurringInterval: initialData.recurringInterval as "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | undefined,
+          }),
+        }
         : {
-            type: "EXPENSE" as const,
-            amount: "",
-            description: "",
-            accountId: accounts.find((ac) => ac.isDefault)?.id,
-            date: new Date(),
-            isRecurring: false,
-          },
+          type: "EXPENSE" as const,
+          amount: "",
+          description: "",
+          accountId: accounts.find((ac) => ac.isDefault)?.id,
+          date: new Date(),
+          isRecurring: false,
+        },
   });
 
   const {
     loading: transactionLoading,
     fn: transactionFn,
-    data: transactionResult,
-  } = useFetch(editMode ? updateTransaction : createTransaction);
+    data: transactionResult
+  } = useFetch(
+    editMode ? updateTransaction : createTransaction
+  );
 
   const onSubmit = (data: TransactionFormData) => {
     const formData = {
@@ -198,7 +207,9 @@ export function AddTransactionForm({
           : "Transaction created successfully"
       );
       reset();
-      router.push(`/account/${transactionResult.data.accountId}`);
+      // Use type assertion to tell TypeScript the shape of the data
+      const resultData = transactionResult.data as TransactionResult["data"];
+      router.push(`/account/${resultData.accountId}`);
     }
   }, [transactionResult, transactionLoading, editMode, reset, router]);
 
@@ -300,7 +311,7 @@ export function AddTransactionForm({
                   className="w-5 h-5 rounded-full flex items-center justify-center"
                   style={{ backgroundColor: selectedCategory.color }}
                 >
-                  {iconMap[selectedCategory.icon as keyof typeof iconMap] && 
+                  {iconMap[selectedCategory.icon as keyof typeof iconMap] &&
                     React.createElement(iconMap[selectedCategory.icon as keyof typeof iconMap], {
                       className: "w-3 h-3 text-white"
                     })
