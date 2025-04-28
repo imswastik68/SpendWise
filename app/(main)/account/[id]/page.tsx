@@ -5,12 +5,13 @@ import { notFound } from "next/navigation";
 import { AccountChart } from "../_components/account-chart";
 import { Suspense } from "react";
 
-// Remove the custom Props type definition entirely
-export default async function AccountPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+interface AccountPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default async function AccountPage({ params }: AccountPageProps) {
   const accountData = await getAccountWithTransactions(params.id);
 
   if (!accountData) {
