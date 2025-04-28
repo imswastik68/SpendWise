@@ -5,13 +5,12 @@ import { notFound } from "next/navigation";
 import { AccountChart } from "../_components/account-chart";
 import { Suspense } from "react";
 
-// Update the Props type to match Next.js expectations
-type Props = {
-  params: { id: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
-
-export default async function AccountPage({ params }: Props) {
+// Remove the custom Props type definition entirely
+export default async function AccountPage({
+  params,
+}: {
+  params: { id: string }
+}) {
   const accountData = await getAccountWithTransactions(params.id);
 
   if (!accountData) {
