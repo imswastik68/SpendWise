@@ -3,6 +3,7 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { PrismaClient } from "@prisma/client";
 
 const serializeDecimal = (obj: any) => {
   const serialized = { ...obj };
@@ -91,7 +92,7 @@ export async function bulkDeleteTransactions(transactionIds: string) {
     }, {});
 
     // Delete transactions and update account balances in a transaction
-    await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">) => {
       // Delete transactions
       await tx.transaction.deleteMany({
         where: {
