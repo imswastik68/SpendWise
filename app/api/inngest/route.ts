@@ -17,3 +17,7 @@ export const { GET, POST, PUT } = serve({
     checkBudgetAlerts,
   ],
 });
+
+export const config = {
+  runtime: "nodejs",
+};
