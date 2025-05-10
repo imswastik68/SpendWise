@@ -18,9 +18,14 @@ interface Transaction {
   recurringInterval?: string;
 }
 
-export default async function AddTransactionPage({ searchParams }: { searchParams: SearchParams }) {
+type PageProps = {
+  searchParams: Promise<SearchParams>;
+};
+
+export default async function CreateTransactionPage({ searchParams }: PageProps) {
+  const resolvedParams = await searchParams;
   const accounts = (await getUserAccounts()) || [];
-  const editId = searchParams?.edit;
+  const editId = resolvedParams?.edit;
 
   let initialData = null;
   if (editId) {

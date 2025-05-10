@@ -70,10 +70,12 @@ export async function bulkDeleteTransactions(transactionIds: string) {
 
     if (!user) throw new Error("User not found");
 
+    const transactionIdsArray = transactionIds.split(',');
+
     // Get transactions to calculate balance changes
     const transactions = await db.transaction.findMany({
       where: {
-        id: { in: transactionIds },
+        id: { in: transactionIdsArray },
         userId: user.id,
       },
     });
@@ -82,18 +84,18 @@ export async function bulkDeleteTransactions(transactionIds: string) {
     const accountBalanceChanges = transactions.reduce((acc, transaction) => {
       const change =
         transaction.type === "EXPENSE"
-          ? transaction.amount
-          : -transaction.amount;
+          ? transaction.amount.toNumber()
+          : -transaction.amount.toNumber();
       acc[transaction.accountId] = (acc[transaction.accountId] || 0) + change;
       return acc;
-    }, {});
+    }, {} as { [key: string]: number });
 
     // Delete transactions and update account balances in a transaction
     await db.$transaction(async (tx) => {
       // Delete transactions
       await tx.transaction.deleteMany({
         where: {
-          id: { in: transactionIds },
+          id: { in: transactionIdsArray },
           userId: user.id,
         },
       });

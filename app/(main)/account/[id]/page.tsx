@@ -5,9 +5,9 @@ import { notFound } from "next/navigation";
 import { AccountChart } from "../_components/account-chart";
 import { Suspense } from "react";
 
+// Fix the typing issue with Awaited
 type PageProps = {
   params: Promise<{ id: string }>;
-  searchParams?: { [key: string]: string | string[] | undefined };
 };
 
 export default async function AccountPage({ params }: PageProps) {

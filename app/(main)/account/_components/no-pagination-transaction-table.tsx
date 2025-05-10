@@ -371,10 +371,8 @@ export function NoPaginationTransactionTable({ transactions }: { transactions: T
                               className="gap-1 bg-purple-100 text-purple-700 hover:bg-purple-200"
                             >
                               <RefreshCw className="h-3 w-3" />
-                              {
-                                RECURRING_INTERVALS[
-                                  transaction.recurringInterval
-                                ]
+                              {transaction.recurringInterval && 
+                                RECURRING_INTERVALS[transaction.recurringInterval as keyof typeof RECURRING_INTERVALS]
                               }
                             </Badge>
                           </TooltipTrigger>
@@ -382,7 +380,7 @@ export function NoPaginationTransactionTable({ transactions }: { transactions: T
                             <div className="text-sm">
                               <div className="font-medium">Next Date:</div>
                               <div>
-                                {format(
+                                {transaction.nextRecurringDate && format(
                                   new Date(transaction.nextRecurringDate),
                                   "PPP"
                                 )}

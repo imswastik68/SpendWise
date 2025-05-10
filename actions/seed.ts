@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/prisma";
 import { subDays } from "date-fns";
-import { Prisma } from "@prisma/client";
+import { Prisma, TransactionStatus } from "@prisma/client";
 
 const ACCOUNT_ID = "account-id";
 const USER_ID = "user-id";
@@ -52,7 +52,7 @@ export async function seedTransactions() {
       description: string;
       date: Date;
       category: string;
-      status: string;
+      status: TransactionStatus;
       userId: string;
       accountId: string;
       createdAt: Date;
@@ -78,7 +78,7 @@ export async function seedTransactions() {
           description: string;
           date: Date;
           category: string;
-          status: string;
+          status: TransactionStatus;
           userId: string;
           accountId: string;
           createdAt: Date;
@@ -92,7 +92,7 @@ export async function seedTransactions() {
           } ${category}`,
           date,
           category,
-          status: "COMPLETED",
+          status: "COMPLETED" as TransactionStatus,
           userId: USER_ID,
           accountId: ACCOUNT_ID,
           createdAt: date,

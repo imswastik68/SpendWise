@@ -5,6 +5,7 @@ import { db } from "@/lib/prisma";
 import { request } from "@arcjet/next";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { AccountType } from "@prisma/client";
 
 const serializeTransaction = (obj: any) => {
   const serialized = { ...obj };
@@ -16,6 +17,13 @@ const serializeTransaction = (obj: any) => {
   }
   return serialized;
 };
+
+interface AccountData {
+  name: string;
+  type: AccountType;
+  balance: string;
+  isDefault?: boolean;
+}
 
 export async function getUserAccounts() {
   const { userId } = await auth();
@@ -51,7 +59,7 @@ export async function getUserAccounts() {
   }
 }
 
-export async function createAccount(data) {
+export async function createAccount(data: AccountData) {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");

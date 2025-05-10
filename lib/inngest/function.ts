@@ -69,10 +69,10 @@ export const processRecurringTransaction = inngest.createFunction(
           where: { id: transaction.id },
           data: {
             lastProcessed: new Date(),
-            nextRecurringDate: calculateNextRecurringDate(
+            nextRecurringDate: transaction.recurringInterval ? calculateNextRecurringDate(
               new Date(),
               transaction.recurringInterval
-            ),
+            ) : null,
           },
         });
       });
@@ -204,7 +204,7 @@ export const generateMonthlyReports = inngest.createFunction(
           to: user.email,
           subject: `Your Monthly Financial Report - ${monthName}`,
           react: EmailTemplate({
-            userName: user.name,
+            userName: user.name ?? undefined,
             type: "monthly-report",
             data: {
               stats,
@@ -265,7 +265,7 @@ export const checkBudgetAlerts = inngest.createFunction(
         });
 
         const totalExpenses = expenses._sum.amount?.toNumber() || 0;
-        const budgetAmount = budget.amount;
+        const budgetAmount = Number(budget.amount);
         const percentageUsed = (totalExpenses / budgetAmount) * 100;
 
         // Check if we should send an alert
@@ -278,7 +278,7 @@ export const checkBudgetAlerts = inngest.createFunction(
             to: budget.user.email,
             subject: `Budget Alert for ${defaultAccount.name}`,
             react: EmailTemplate({
-              userName: budget.user.name,
+              userName: budget.user.name ?? undefined,
               type: "budget-alert",
               data: {
                   percentageUsed,
@@ -313,11 +313,12 @@ function isNewMonth(lastAlertDate: Date, currentDate: Date) {
 }
 
 // Utility functions
-function isTransactionDue(transaction) {
+function isTransactionDue(transaction: { lastProcessed: Date | null; nextRecurringDate: Date | null }) {
   // If no lastProcessed date, transaction is due
   if (!transaction.lastProcessed) return true;
 
   const today = new Date();
+  if (!transaction.nextRecurringDate) return false;
   const nextDue = new Date(transaction.nextRecurringDate);
 
   // Compare with nextDue date

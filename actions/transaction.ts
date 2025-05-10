@@ -21,6 +21,7 @@ interface TransactionData {
   type: "EXPENSE" | "INCOME";
   amount: number;
   date: string;
+  category: string;
   isRecurring?: boolean;
   recurringInterval?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
 }

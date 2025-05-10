@@ -1,11 +1,12 @@
 "use server";
 
 import { Resend } from "resend";
+import { ReactElement } from "react";
 
 interface EmailParams {
   to: string;
   subject: string;
-  react: string;
+  react: ReactElement | undefined;
 }
 
 export async function sendEmail({ to, subject, react }: EmailParams) {

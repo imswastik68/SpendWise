@@ -64,8 +64,20 @@ const RECURRING_INTERVALS = {
   YEARLY: "Yearly",
 };
 
-export function TransactionTable({ transactions }) {
-  const [selectedIds, setSelectedIds] = useState([]);
+interface Transaction {
+  id: string | number;
+  date: string;
+  description: string;
+  type: string;
+  amount: number;
+  category: string;
+  isRecurring: boolean;
+  recurringInterval?: string;
+  nextRecurringDate?: string;
+}
+
+export function TransactionTable({ transactions }: { transactions: Transaction[] }) {
+  const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [sortConfig, setSortConfig] = useState({
     field: "date",
     direction: "desc",
@@ -137,7 +149,7 @@ export function TransactionTable({ transactions }) {
     );
   }, [filteredAndSortedTransactions, currentPage]);
 
-  const handleSort = (field) => {
+  const handleSort = (field: 'date' | 'amount' | 'category') => {
     setSortConfig((current) => ({
       field,
       direction:
@@ -145,7 +157,7 @@ export function TransactionTable({ transactions }) {
     }));
   };
 
-  const handleSelect = (id) => {
+  const handleSelect = (id: string | number) => {
     setSelectedIds((current) =>
       current.includes(id)
         ? current.filter((item) => item !== id)
@@ -191,7 +203,7 @@ export function TransactionTable({ transactions }) {
     setCurrentPage(1);
   };
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
     setSelectedIds([]); // Clear selections on page change
   };
@@ -390,10 +402,8 @@ export function TransactionTable({ transactions }) {
                               className="gap-1 bg-purple-100 text-purple-700 hover:bg-purple-200"
                             >
                               <RefreshCw className="h-3 w-3" />
-                              {
-                                RECURRING_INTERVALS[
-                                  transaction.recurringInterval
-                                ]
+                              {transaction.recurringInterval && 
+                                RECURRING_INTERVALS[transaction.recurringInterval as keyof typeof RECURRING_INTERVALS]
                               }
                             </Badge>
                           </TooltipTrigger>
@@ -401,7 +411,7 @@ export function TransactionTable({ transactions }) {
                             <div className="text-sm">
                               <div className="font-medium">Next Date:</div>
                               <div>
-                                {format(
+                                {transaction.nextRecurringDate && format(
                                   new Date(transaction.nextRecurringDate),
                                   "PPP"
                                 )}
