@@ -1,8 +1,10 @@
 "use server";
 
-import { db } from "@/lib/prisma";
+import { PrismaClient, TransactionStatus, TransactionType } from "@prisma/client";
 import { subDays } from "date-fns";
-import { Prisma, TransactionStatus } from "@prisma/client";
+
+// Initialize Prisma client
+const prisma = new PrismaClient();
 
 const ACCOUNT_ID = "account-id";
 const USER_ID = "user-id";
@@ -47,7 +49,7 @@ export async function seedTransactions() {
     // Generate 90 days of transactions
     const transactions: Array<{
       id: string;
-      type: "INCOME" | "EXPENSE";
+      type: TransactionType;
       amount: number;
       description: string;
       date: Date;
@@ -68,22 +70,10 @@ export async function seedTransactions() {
 
       for (let j = 0; j < transactionsPerDay; j++) {
         // 40% chance of income, 60% chance of expense
-        const type = Math.random() < 0.4 ? "INCOME" : "EXPENSE";
+        const type = Math.random() < 0.4 ? "INCOME" : "EXPENSE" as TransactionType;
         const { category, amount } = getRandomCategory(type);
 
-        const transaction: {
-          id: string;
-          type: "INCOME" | "EXPENSE";
-          amount: number;
-          description: string;
-          date: Date;
-          category: string;
-          status: TransactionStatus;
-          userId: string;
-          accountId: string;
-          createdAt: Date;
-          updatedAt: Date;
-        } = {
+        const transaction = {
           id: crypto.randomUUID(),
           type,
           amount,
@@ -105,7 +95,7 @@ export async function seedTransactions() {
     }
 
     // Insert transactions in batches and update account balance
-    await db.$transaction(async (tx: Prisma.TransactionClient) => {
+    await prisma.$transaction(async (tx) => {
       // Clear existing transactions
       await tx.transaction.deleteMany({
         where: { accountId: ACCOUNT_ID },
@@ -130,5 +120,7 @@ export async function seedTransactions() {
   } catch (error) {
     console.error("Error seeding transactions:", error);
     return { success: false, error: (error as Error).message };
+  } finally {
+    await prisma.$disconnect();
   }
 }
