@@ -373,7 +373,6 @@ async function getMonthlyStats(userId: string, month: Date) {
       totalExpenses: 0,
       totalIncome: 0,
       byCategory: {},
-      transactionCount: transactions.length,
     }
   );
 }
